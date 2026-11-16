@@ -1,5 +1,5 @@
 mem0ai>=0.1.100
-mcp>=1.10,<2
+mcp>=1.30,<2
 uvicorn>=0.30
 qdrant-client>=1.9
 ollama>=0.3

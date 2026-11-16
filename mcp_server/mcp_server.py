@@ -17,6 +17,7 @@ import asyncio
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.responses import HTMLResponse, JSONResponse
 
 from mem0 import Memory
@@ -73,11 +74,30 @@ memory = Memory.from_config(
     }
 )
 
+# Transport-Security EXPLIZIT setzen – nicht dem SDK-Default überlassen:
+# FastMCP aktiviert bei host=127.0.0.1 (Default) automatisch DNS-Rebinding-Schutz
+# mit localhost-only allowed_hosts → hinter TLS-Proxies (Tailscale Funnel,
+# Caddy) lehnt /mcp jeden fremden Host-Header mit HTTP 421 ab.
+# MCP_ALLOWED_HOSTS (kommagetrennt) gesetzt → Check aktiv mit diesen Hosts;
+# leer (Default) → Check aus. Das ist sicher: /mcp schützt die
+# Bearer-Token-Middleware, TLS übernimmt der Proxy (Funnel).
+_ALLOWED_HOSTS = [
+    h.strip() for h in os.getenv("MCP_ALLOWED_HOSTS", "").split(",") if h.strip()
+]
+_transport_security = TransportSecuritySettings(
+    enable_dns_rebinding_protection=bool(_ALLOWED_HOSTS),
+    allowed_hosts=_ALLOWED_HOSTS,
+)
+
 try:
     # stateless_http: jeder Request wird unabhängig behandelt → die per-Request
     # gesetzte Token-Identität (ContextVar) erreicht die Tools zuverlässig.
-    mcp = FastMCP(name="mem0-oss", stateless_http=True)
-except TypeError:  # älteres mcp-SDK ohne stateless_http
+    mcp = FastMCP(
+        name="mem0-oss",
+        stateless_http=True,
+        transport_security=_transport_security,
+    )
+except TypeError:  # älteres mcp-SDK ohne stateless_http/transport_security
     mcp = FastMCP(name="mem0-oss")
 
 STORE = TokenStore()

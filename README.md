@@ -158,6 +158,7 @@ Danach ist der Server öffentlich unter `https://<tailnet-name>.ts.net/` erreich
 | Extrahierte Fakten wirken zufällig unvollständig | Ollama-Default `num_ctx`=4096 schneidet Mem0s Extraction-Prompt still ab | `setx OLLAMA_CONTEXT_LENGTH 16384`, Ollama beenden (Tray → Quit) und neu starten |
 | `mem0-mcp` erreicht Ollama nicht | `host.docker.internal` | Docker Desktop läuft? `OLLAMA_BASE_URL` in `.env` prüfen |
 | 401 bei MCP-Requests | Token falsch/verrutscht | neu erzeugen: `docker compose exec mem0-mcp python manage.py token --user-id …` |
+| HTTP 421 „Misdirected Request" via Funnel/Proxy | mcp-SDK aktiviert bei `host=127.0.0.1` (Default) automatisch einen localhost-only Host-Header-Check | behoben: `TransportSecuritySettings` werden jetzt explizit gesetzt (`MCP_ALLOWED_HOSTS`, Default = Check aus); auf dem Server `git pull` + `docker compose up -d --build` |
 | Qdrant/Ollama von außen erreichbar? | – | Soll es **nicht** sein: kein `ports:`-Mapping für `qdrant`; nur `mem0-mcp` veröffentlicht 8000 (nur an `127.0.0.1`) |
 
 ## Projektstruktur
