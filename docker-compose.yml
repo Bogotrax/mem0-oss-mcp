@@ -1,0 +1,58 @@
+name: mem0-oss-mcp
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:-}
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks: [mem0-net]
+    # Absichtlich KEINE ports:-Sektion: Qdrant bleibt im internen Docker-Netz.
+    # Zum Debuggen zum Test auskommentieren (bindet nur an localhost):
+    # ports:
+    #   - "127.0.0.1:6333:6333"
+
+  mem0-mcp:
+    build: ./mcp_server
+    restart: unless-stopped
+    depends_on: [qdrant]
+    ports:
+      - "127.0.0.1:8000:8000"    # nur lokal; Tailscale Funnel proxyt auf localhost:8000
+    environment:
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+      COLLECTION_NAME: ${COLLECTION_NAME:-memories}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      CHAT_MODEL: ${CHAT_MODEL:-qwen2.5:7b-instruct}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-bge-m3}
+      EMBEDDING_DIMS: ${EMBEDDING_DIMS:-1024}
+      MEM0_DEFAULT_USER_ID: ${MEM0_DEFAULT_USER_ID:-default}
+      MCP_AUTH_DISABLED: ${MCP_AUTH_DISABLED:-false}
+      MEM0_TELEMETRY: "false"
+    volumes:
+      - mcp_data:/data            # tokens.json + history.db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # für späteren Linux-Server-Betrieb
+    networks: [mem0-net]
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    profiles: ["ollama-docker"]   # auf Windows: natives Ollama nutzen; Profil nur für späteren Linux-Server
+    environment:
+      OLLAMA_CONTEXT_LENGTH: "16384"
+    volumes:
+      - ollama_models:/root/.ollama
+    networks: [mem0-net]
+
+volumes:
+  qdrant_data:
+  mcp_data:
+  ollama_models:
+
+networks:
+  mem0-net:
+    driver: bridge

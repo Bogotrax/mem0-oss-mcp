@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mem0-oss": {
+      "url": "http://localhost:8000/mcp",
+      "headers": {
+        "Authorization": "Bearer HIER_DEIN_TOKEN"
+      }
+    }
+  }
+}
