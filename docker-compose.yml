@@ -31,6 +31,7 @@ services:
       EMBEDDING_DIMS: ${EMBEDDING_DIMS:-1024}
       MEM0_DEFAULT_USER_ID: ${MEM0_DEFAULT_USER_ID:-default}
       MCP_AUTH_DISABLED: ${MCP_AUTH_DISABLED:-false}
+      MCP_ALLOWED_HOSTS: ${MCP_ALLOWED_HOSTS:-}
       MEM0_TELEMETRY: "false"
     volumes:
       - mcp_data:/data            # tokens.json + history.db
