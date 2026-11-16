@@ -148,6 +148,7 @@ Danach ist der Server öffentlich unter `https://<tailnet-name>.ts.net/` erreich
 | Chat-Modell wechsel | `.env`: `CHAT_MODEL` → `docker compose up -d` |
 | Embedding wechseln | Dimensions-Check! `bge-m3`=1024, `nomic-embed-text`=768 (`EMBEDDING_DIMS`) + neue Collection (`COLLECTION_NAME`) |
 | Update | `docker compose build --pull mem0-mcp; docker compose up -d` |
+| Hybridsuche (BM25) | seit `fastembed` in den Requirements aktiv; erste Suche lädt `Qdrant/bm25` einmalig in den Cache. Bestehende Collection hat noch keine Sparse-Vektoren → neue `COLLECTION_NAME` setzen und Memories neu einspeisen |
 | Token-/Invite-Verwaltung | `docker compose exec mem0-mcp python manage.py --help` |
 
 ## Troubleshooting
@@ -159,6 +160,7 @@ Danach ist der Server öffentlich unter `https://<tailnet-name>.ts.net/` erreich
 | `mem0-mcp` erreicht Ollama nicht | `host.docker.internal` | Docker Desktop läuft? `OLLAMA_BASE_URL` in `.env` prüfen |
 | 401 bei MCP-Requests | Token falsch/verrutscht | neu erzeugen: `docker compose exec mem0-mcp python manage.py token --user-id …` |
 | HTTP 421 „Misdirected Request" via Funnel/Proxy | mcp-SDK aktiviert bei `host=127.0.0.1` (Default) automatisch einen localhost-only Host-Header-Check | behoben: `TransportSecuritySettings` werden jetzt explizit gesetzt (`MCP_ALLOWED_HOSTS`, Default = Check aus); auf dem Server `git pull` + `docker compose up -d --build` |
+| Suche findet exakte Stichworte (IDs, Pfade, Namen) nicht | `fastembed` fehlte → Qdrant-BM25 still deaktiviert (Warnung im Log) | Image neu bauen (`docker compose build --pull mem0-mcp`), neue Collection anlegen, Memories neu einspeisen |
 | Qdrant/Ollama von außen erreichbar? | – | Soll es **nicht** sein: kein `ports:`-Mapping für `qdrant`; nur `mem0-mcp` veröffentlicht 8000 (nur an `127.0.0.1`) |
 
 ## Projektstruktur
