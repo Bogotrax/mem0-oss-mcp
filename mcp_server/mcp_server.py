@@ -48,6 +48,10 @@ memory = Memory.from_config(
                 "port": QDRANT_PORT,
                 "api_key": QDRANT_API_KEY,
                 "on_disk": True,
+                # Qdrant lauscht nur auf HTTP im internen Docker-Netz; ohne
+                # explizites "https": False wuerde der qdrant-client wegen
+                # des API-Keys versuchen, per TLS zu verbinden (prefer_https).
+                "https": False,
                 # MUSS zum Embedding-Modell passen (bge-m3=1024, nomic-embed-text=768)!
                 "embedding_model_dims": EMBEDDING_DIMS,
             },
